@@ -1,0 +1,93 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run E2E tests
+        run: npm run test:e2e
+        env:
+          MONGO_URI: mongodb://localhost:27017/test
+          JWT_SECRET: test-secret
+          ACCESS_TOKEN_TTL: '900'
+          REFRESH_TOKEN_TTL: '1209600'
+          COOKIE_DOMAIN: localhost
+          COOKIE_SECURE: 'false'
+          COOKIE_SAMESITE: Lax
+          FRONTEND_ORIGIN: http://localhost:5173
+          ALLOW_CREDENTIALS: 'true'
+          THROTTLE_TTL: '60'
+          THROTTLE_LIMIT: '10'
+          NODE_ENV: test
+
+  build:
+    needs: test
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: Build Docker image
+        run: docker build -t auth-backend:${{ github.sha }} .
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Authenticate to GCP
+        uses: google-github-actions/auth@v1
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v1
+
+      - name: Configure Docker for GCR
+        run: gcloud auth configure-docker
+
+      - name: Build and push Docker image
+        run: |
+          docker build -t gcr.io/${{ secrets.GCP_PROJECT_ID }}/auth-backend:${{ github.sha }} .
+          docker push gcr.io/${{ secrets.GCP_PROJECT_ID }}/auth-backend:${{ github.sha }}
+
+      - name: Deploy to Cloud Run
+        run: |
+          gcloud run deploy auth-backend \
+            --image gcr.io/${{ secrets.GCP_PROJECT_ID }}/auth-backend:${{ github.sha }} \
+            --platform managed \
+            --region us-central1 \
+            --allow-unauthenticated \
+            --set-env-vars "MONGO_URI=${{ secrets.MONGO_URI }},JWT_SECRET=${{ secrets.JWT_SECRET }},ACCESS_TOKEN_TTL=900,REFRESH_TOKEN_TTL=1209600,COOKIE_DOMAIN=${{ secrets.COOKIE_DOMAIN }},COOKIE_SECURE=true,COOKIE_SAMESITE=Strict,FRONTEND_ORIGIN=${{ secrets.FRONTEND_ORIGIN }},ALLOW_CREDENTIALS=true,THROTTLE_TTL=60,THROTTLE_LIMIT=10"
+
