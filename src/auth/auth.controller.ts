@@ -161,8 +161,8 @@ export class AuthController {
     const cookieDomain = this.configService.get<string>('COOKIE_DOMAIN');
     const cookieSecure = this.configService.get<string>('COOKIE_SECURE') === 'true';
     const cookieSameSite = (this.configService.get<string>('COOKIE_SAMESITE') || 'lax').toLowerCase() as 'strict' | 'lax' | 'none';
-    const accessTokenTtl = parseInt(this.configService.get<string>('ACCESS_TOKEN_TTL', '900'));
-    const refreshTokenTtl = parseInt(this.configService.get<string>('REFRESH_TOKEN_TTL', '1209600'));
+    const accessTokenTtl = parseInt(this.configService.get<string>('ACCESS_TOKEN_TTL'));
+    const refreshTokenTtl = parseInt(this.configService.get<string>('REFRESH_TOKEN_TTL'));
 
     const cookieOptions = {
       httpOnly: true,

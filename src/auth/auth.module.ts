@@ -15,12 +15,14 @@ import { WinstonLoggerService } from '../common/logger/winston-logger.service';
     PassportModule,
     JwtModule.registerAsync({
       inject: [ConfigService],
-      useFactory: (configService: ConfigService) => ({
-        secret: configService.get<string>('JWT_SECRET'),
-        signOptions: {
-          expiresIn: configService.get<number>('ACCESS_TOKEN_TTL'),
-        },
-      }),
+      useFactory: (configService: ConfigService) => {
+        return {
+          secret: configService.get<string>('JWT_SECRET'),
+          signOptions: {
+            expiresIn: configService.get<number>('ACCESS_TOKEN_TTL'),
+          }
+        }
+      }
     }),
   ],
   controllers: [AuthController],
