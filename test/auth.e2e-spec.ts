@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication, ValidationPipe } from '@nestjs/common';
-import * as request from 'supertest';
+import request from 'supertest';
 import { AppModule } from '../src/app.module';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import { ConfigModule } from '@nestjs/config';
@@ -64,7 +64,9 @@ describe('AuthController (e2e)', () => {
           expect(res.body).toHaveProperty('user');
           expect(res.body.user.email).toBe('test@example.com');
           expect(res.headers['set-cookie']).toBeDefined();
-          const cookies = res.headers['set-cookie'];
+          const cookies = Array.isArray(res.headers['set-cookie']) 
+            ? res.headers['set-cookie'] 
+            : [res.headers['set-cookie']];
           expect(cookies.some((cookie: string) => cookie.includes('access_token'))).toBe(true);
           expect(cookies.some((cookie: string) => cookie.includes('refresh_token'))).toBe(true);
         });
@@ -147,7 +149,9 @@ describe('AuthController (e2e)', () => {
           expect(res.body).toHaveProperty('message');
           expect(res.body).toHaveProperty('user');
           expect(res.headers['set-cookie']).toBeDefined();
-          const cookies = res.headers['set-cookie'];
+          const cookies = Array.isArray(res.headers['set-cookie']) 
+            ? res.headers['set-cookie'] 
+            : [res.headers['set-cookie']];
           expect(cookies.some((cookie: string) => cookie.includes('access_token'))).toBe(true);
           expect(cookies.some((cookie: string) => cookie.includes('refresh_token'))).toBe(true);
         });
@@ -177,9 +181,11 @@ describe('AuthController (e2e)', () => {
           password: 'Password123!',
         })
         .expect((res) => {
-          const cookies = res.headers['set-cookie'];
-          accessToken = cookies.find((c: string) => c.includes('access_token')).split(';')[0].split('=')[1];
-          refreshToken = cookies.find((c: string) => c.includes('refresh_token')).split(';')[0].split('=')[1];
+          const cookies = Array.isArray(res.headers['set-cookie']) 
+            ? res.headers['set-cookie'] 
+            : [res.headers['set-cookie']];
+          accessToken = cookies.find((c: string) => c.includes('access_token'))!.split(';')[0].split('=')[1];
+          refreshToken = cookies.find((c: string) => c.includes('refresh_token'))!.split(';')[0].split('=')[1];
         });
     });
 
@@ -214,8 +220,10 @@ describe('AuthController (e2e)', () => {
           password: 'Password123!',
         })
         .expect((res) => {
-          const cookies = res.headers['set-cookie'];
-          refreshToken = cookies.find((c: string) => c.includes('refresh_token')).split(';')[0].split('=')[1];
+          const cookies = Array.isArray(res.headers['set-cookie']) 
+            ? res.headers['set-cookie'] 
+            : [res.headers['set-cookie']];
+          refreshToken = cookies.find((c: string) => c.includes('refresh_token'))!.split(';')[0].split('=')[1];
         });
     });
 
@@ -227,7 +235,9 @@ describe('AuthController (e2e)', () => {
         .expect((res) => {
           expect(res.body).toHaveProperty('message');
           expect(res.headers['set-cookie']).toBeDefined();
-          const cookies = res.headers['set-cookie'];
+          const cookies = Array.isArray(res.headers['set-cookie']) 
+            ? res.headers['set-cookie'] 
+            : [res.headers['set-cookie']];
           expect(cookies.some((cookie: string) => cookie.includes('access_token'))).toBe(true);
           expect(cookies.some((cookie: string) => cookie.includes('refresh_token'))).toBe(true);
         });
@@ -254,9 +264,11 @@ describe('AuthController (e2e)', () => {
           password: 'Password123!',
         })
         .expect((res) => {
-          const cookies = res.headers['set-cookie'];
-          accessToken = cookies.find((c: string) => c.includes('access_token')).split(';')[0].split('=')[1];
-          refreshToken = cookies.find((c: string) => c.includes('refresh_token')).split(';')[0].split('=')[1];
+          const cookies = Array.isArray(res.headers['set-cookie']) 
+            ? res.headers['set-cookie'] 
+            : [res.headers['set-cookie']];
+          accessToken = cookies.find((c: string) => c.includes('access_token'))!.split(';')[0].split('=')[1];
+          refreshToken = cookies.find((c: string) => c.includes('refresh_token'))!.split(';')[0].split('=')[1];
         });
     });
 
@@ -267,7 +279,9 @@ describe('AuthController (e2e)', () => {
         .expect(200)
         .expect((res) => {
           expect(res.body).toHaveProperty('message');
-          const cookies = res.headers['set-cookie'];
+          const cookies = Array.isArray(res.headers['set-cookie']) 
+            ? res.headers['set-cookie'] 
+            : [res.headers['set-cookie']];
           const accessCookie = cookies.find((c: string) => c.includes('access_token'));
           const refreshCookie = cookies.find((c: string) => c.includes('refresh_token'));
           expect(accessCookie).toContain('Max-Age=0');

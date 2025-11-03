@@ -4,12 +4,12 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
 import { ThrottlerGuard } from '@nestjs/throttler';
+import { ConfigService } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { WinstonLoggerService } from './common/logger/winston-logger.service';
-import { ConfigService } from '@nestjs/config';
 
 @Module({
   imports: [
@@ -26,8 +26,10 @@ import { ConfigService } from '@nestjs/config';
     ThrottlerModule.forRootAsync({
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
-        ttl: parseInt(configService.get<string>('THROTTLE_TTL', '60')),
-        limit: parseInt(configService.get<string>('THROTTLE_LIMIT', '10')),
+        throttlers: [{
+          ttl: parseInt(configService.get<string>('THROTTLE_TTL', '60')),
+          limit: parseInt(configService.get<string>('THROTTLE_LIMIT', '10')),
+        }],
       }),
     }),
     AuthModule,

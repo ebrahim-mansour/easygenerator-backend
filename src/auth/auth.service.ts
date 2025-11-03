@@ -17,7 +17,7 @@ export class AuthService {
     private logger: WinstonLoggerService,
   ) {}
 
-  async signup(signupDto: SignupDto, ip?: string, userAgent?: string): Promise<User> {
+  async signup(signupDto: SignupDto, ip?: string, userAgent?: string): Promise<UserDocument> {
     const { email, name, password, deviceInfo } = signupDto;
 
     const existingUser = await this.userModel.findOne({ email: email.toLowerCase().trim() });

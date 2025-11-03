@@ -2,17 +2,17 @@ import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { ConfigService } from '@nestjs/config';
-import * as cookieParser from 'cookie-parser';
+import cookieParser from 'cookie-parser';
 import helmet from 'helmet';
 import { AppModule } from './app.module';
 import { WinstonLoggerService } from './common/logger/winston-logger.service';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule, {
-    logger: new WinstonLoggerService(),
-  });
+  const configService = new ConfigService();
 
-  const configService = app.get(ConfigService);
+  const app = await NestFactory.create(AppModule, {
+    logger: new WinstonLoggerService(configService),
+  });
 
   app.use(helmet());
   app.use(cookieParser());
@@ -51,8 +51,8 @@ async function bootstrap() {
   const port = configService.get<number>('PORT') || 3000;
   await app.listen(port);
 
-  console.log(`Application is running on: http://localhost:${port}`);
+  const logger = app.get(WinstonLoggerService);
+  logger.log(`Application is running on: http://localhost:${port}`);
 }
 
 bootstrap();
-

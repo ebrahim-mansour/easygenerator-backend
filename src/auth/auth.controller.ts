@@ -15,9 +15,9 @@ import { Request, Response } from 'express';
 import { ApiTags, ApiOperation, ApiResponse, ApiCookieAuth } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { SignupDto } from './dto/signup.dto';
-import { SigninDto } from './dto/signin.dto';
 import { ConfigService } from '@nestjs/config';
 import { UsersService } from '../users/users.service';
+import { UserDocument } from '../users/schemas/user.schema';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -42,7 +42,7 @@ export class AuthController {
       const ip = req.ip || req.connection.remoteAddress;
       const userAgent = req.get('user-agent');
 
-      const user = await this.authService.signup(signupDto, ip, userAgent);
+      const user: UserDocument = await this.authService.signup(signupDto, ip, userAgent);
       const tokens = await this.authService.generateTokens(user._id.toString());
 
       this.setCookies(res, tokens.accessToken, tokens.refreshToken);
@@ -77,7 +77,7 @@ export class AuthController {
   @ApiResponse({ status: 200, description: 'User successfully signed in' })
   @ApiResponse({ status: 401, description: 'Invalid credentials' })
   async signin(@Req() req: Request, @Res() res: Response): Promise<void> {
-    const user = req.user as any;
+    const user = req.user as UserDocument;
     const tokens = await this.authService.generateTokens(user._id.toString());
 
     this.setCookies(res, tokens.accessToken, tokens.refreshToken);
@@ -145,6 +145,10 @@ export class AuthController {
     const user = req.user as any;
     const profile = await this.usersService.findById(user.userId);
 
+    if (!profile) {
+      throw new UnauthorizedException('User not found');
+    }
+
     return {
       id: profile._id,
       email: profile.email,
@@ -156,7 +160,7 @@ export class AuthController {
   private setCookies(res: Response, accessToken: string, refreshToken: string): void {
     const cookieDomain = this.configService.get<string>('COOKIE_DOMAIN');
     const cookieSecure = this.configService.get<string>('COOKIE_SECURE') === 'true';
-    const cookieSameSite = this.configService.get<string>('COOKIE_SAMESITE') as 'Strict' | 'Lax' | 'None';
+    const cookieSameSite = (this.configService.get<string>('COOKIE_SAMESITE') || 'lax').toLowerCase() as 'strict' | 'lax' | 'none';
     const accessTokenTtl = parseInt(this.configService.get<string>('ACCESS_TOKEN_TTL', '900'));
     const refreshTokenTtl = parseInt(this.configService.get<string>('REFRESH_TOKEN_TTL', '1209600'));
 
@@ -180,7 +184,7 @@ export class AuthController {
   private clearCookies(res: Response): void {
     const cookieDomain = this.configService.get<string>('COOKIE_DOMAIN');
     const cookieSecure = this.configService.get<string>('COOKIE_SECURE') === 'true';
-    const cookieSameSite = this.configService.get<string>('COOKIE_SAMESITE') as 'Strict' | 'Lax' | 'None';
+    const cookieSameSite = (this.configService.get<string>('COOKIE_SAMESITE') || 'lax').toLowerCase() as 'strict' | 'lax' | 'none';
 
     const cookieOptions = {
       httpOnly: true,
