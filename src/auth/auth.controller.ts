@@ -15,6 +15,7 @@ import { Request, Response } from 'express';
 import { ApiTags, ApiOperation, ApiResponse, ApiCookieAuth } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { SignupDto } from './dto/signup.dto';
+import { CurrentUser } from './decorators/current-user.decorator';
 import { ConfigService } from '@nestjs/config';
 import { UsersService } from '../users/users.service';
 import { UserDocument } from '../users/schemas/user.schema';
@@ -76,8 +77,10 @@ export class AuthController {
   @ApiOperation({ summary: 'Sign in a user' })
   @ApiResponse({ status: 200, description: 'User successfully signed in' })
   @ApiResponse({ status: 401, description: 'Invalid credentials' })
-  async signin(@Req() req: Request, @Res() res: Response): Promise<void> {
-    const user = req.user as UserDocument;
+  async signin(
+    @CurrentUser() user: UserDocument,
+    @Res() res: Response,
+  ): Promise<void> {
     const tokens = await this.authService.generateTokens(user._id.toString());
 
     this.setCookies(res, tokens.accessToken, tokens.refreshToken);
@@ -122,8 +125,11 @@ export class AuthController {
   @ApiOperation({ summary: 'Log out a user' })
   @ApiCookieAuth('access_token')
   @ApiResponse({ status: 200, description: 'User successfully logged out' })
-  async logout(@Req() req: Request, @Res() res: Response): Promise<void> {
-    const user = req.user as any;
+  async logout(
+    @CurrentUser() user: { userId: string },
+    @Req() req: Request,
+    @Res() res: Response,
+  ): Promise<void> {
     const refreshToken = req.cookies?.refresh_token;
 
     await this.authService.logout(user.userId, refreshToken);
@@ -141,8 +147,7 @@ export class AuthController {
   @ApiCookieAuth('access_token')
   @ApiResponse({ status: 200, description: 'User profile retrieved successfully' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
-  async getProfile(@Req() req: Request) {
-    const user = req.user as any;
+  async getProfile(@CurrentUser() user: { userId: string }) {
     const profile = await this.usersService.findById(user.userId);
 
     if (!profile) {
