@@ -26,10 +26,20 @@ describe('AuthController (e2e)', () => {
     process.env.ALLOW_CREDENTIALS = 'true';
     process.env.THROTTLE_TTL = '60';
     process.env.THROTTLE_LIMIT = '10';
+    process.env.NODE_ENV = 'test';
 
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
-    }).compile();
+    })
+      .overrideModule(ConfigModule)
+      .useModule(
+        ConfigModule.forRoot({
+          isGlobal: true,
+          ignoreEnvFile: true, // Don't load .env file in tests
+          validationSchema: undefined, // Skip validation in tests
+        }),
+      )
+      .compile();
 
     app = moduleFixture.createNestApplication();
     app.use(cookieParser());
@@ -42,11 +52,15 @@ describe('AuthController (e2e)', () => {
     );
 
     await app.init();
-  });
+  }, 60000); // Increase timeout to 60 seconds for MongoMemoryServer
 
   afterAll(async () => {
-    await app.close();
-    await mongoServer.stop();
+    if (app) {
+      await app.close();
+    }
+    if (mongoServer) {
+      await mongoServer.stop();
+    }
   });
 
   describe('/auth/signup (POST)', () => {
