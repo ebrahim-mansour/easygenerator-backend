@@ -22,10 +22,5 @@ export class SignupDto {
     message: 'Password must contain at least one letter, one number, and one special character',
   })
   password: string;
-
-  @ApiProperty({ required: false, description: 'Optional device information' })
-  @IsOptional()
-  @IsString()
-  deviceInfo?: string;
 }
 

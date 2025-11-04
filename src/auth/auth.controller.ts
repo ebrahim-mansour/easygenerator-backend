@@ -37,14 +37,10 @@ export class AuthController {
   @ApiResponse({ status: 400, description: 'Validation error' })
   async signup(
     @Body() signupDto: SignupDto,
-    @Req() req: Request,
     @Res() res: Response,
   ): Promise<void> {
     try {
-      const ip = req.ip || req.connection.remoteAddress;
-      const userAgent = req.get('user-agent');
-
-      const user: UserDocument = await this.authService.signup(signupDto, ip, userAgent);
+      const user: UserDocument = await this.authService.signup(signupDto);
       const tokens = await this.authService.generateTokens(user._id.toString());
 
       this.setCookies(res, tokens.accessToken, tokens.refreshToken);
