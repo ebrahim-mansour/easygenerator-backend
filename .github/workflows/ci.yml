@@ -20,21 +20,8 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      # - name: Run E2E tests
-      #   run: npm run test:e2e
-      #   env:
-      #     MONGO_URI: mongodb://localhost:27017/test
-      #     JWT_SECRET: test-secret
-      #     ACCESS_TOKEN_TTL: '900'
-      #     REFRESH_TOKEN_TTL: '1209600'
-      #     COOKIE_DOMAIN: localhost
-      #     COOKIE_SECURE: 'false'
-      #     COOKIE_SAMESITE: Lax
-      #     FRONTEND_ORIGIN: http://localhost:5173
-      #     ALLOW_CREDENTIALS: 'true'
-      #     THROTTLE_TTL: '60'
-      #     THROTTLE_LIMIT: '10'
-      #     NODE_ENV: test
+      - name: Run E2E tests
+        run: npm run test:e2e
 
   build:
     needs: test
