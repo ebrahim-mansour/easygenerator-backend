@@ -49,7 +49,7 @@ async function bootstrap() {
   SwaggerModule.setup('api', app, document);
 
   const port = configService.get<number>('PORT') || 8080;
-  await app.listen(port);
+  await app.listen(port, '0.0.0.0');
 
   const logger = app.get(WinstonLoggerService);
   logger.log(`Application is running on: http://localhost:${port}`);
