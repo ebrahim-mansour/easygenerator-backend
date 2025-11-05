@@ -52,7 +52,7 @@ describe('AuthController (e2e)', () => {
     );
 
     await app.init();
-  }, 60000); // Increase timeout to 60 seconds for MongoMemoryServer
+  }, 600000);
 
   afterAll(async () => {
     if (app) {

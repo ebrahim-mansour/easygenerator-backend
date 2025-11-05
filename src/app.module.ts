@@ -43,6 +43,11 @@ const envValidationSchema = Joi.object({
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
         uri: configService.get<string>('MONGO_URI'),
+        retryWrites: true,
+        retryReads: true,
+        serverSelectionTimeoutMS: 10000,
+        socketTimeoutMS: 45000,
+        connectTimeoutMS: 10000,
       }),
     }),
     ThrottlerModule.forRootAsync({
