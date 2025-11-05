@@ -166,15 +166,23 @@ export class AuthController {
     const cookieSameSite = (this.configService.get<string>('COOKIE_SAMESITE') || 'lax').toLowerCase() as 'strict' | 'lax' | 'none';
     const accessTokenTtl = parseInt(this.configService.get<string>('ACCESS_TOKEN_TTL'));
     const refreshTokenTtl = parseInt(this.configService.get<string>('REFRESH_TOKEN_TTL'));
+    const isProduction = this.configService.get<string>('NODE_ENV') === 'production';
 
-    const cookieOptions = {
+    // In production when proxying through nginx, don't set domain attribute
+    // or set it to undefined/empty to allow cookies to work with proxy
+    const cookieOptions: any = {
       httpOnly: true,
       secure: cookieSecure,
       sameSite: cookieSameSite,
-      domain: cookieDomain,
       path: '/',
       maxAge: accessTokenTtl * 1000,
     };
+
+    // Only set domain if it's provided and not empty, and not in production
+    // When proxying through nginx, cookies should be set without domain restriction
+    if (cookieDomain && cookieDomain.trim() !== '' && !isProduction) {
+      cookieOptions.domain = cookieDomain;
+    }
 
     res.cookie('access_token', accessToken, cookieOptions);
 
@@ -188,15 +196,21 @@ export class AuthController {
     const cookieDomain = this.configService.get<string>('COOKIE_DOMAIN');
     const cookieSecure = this.configService.get<string>('COOKIE_SECURE') === 'true';
     const cookieSameSite = (this.configService.get<string>('COOKIE_SAMESITE') || 'lax').toLowerCase() as 'strict' | 'lax' | 'none';
+    const isProduction = this.configService.get<string>('NODE_ENV') === 'production';
 
-    const cookieOptions = {
+    const cookieOptions: any = {
       httpOnly: true,
       secure: cookieSecure,
       sameSite: cookieSameSite,
-      domain: cookieDomain,
       path: '/',
       maxAge: 0,
     };
+
+    // Only set domain if it's provided and not empty, and not in production
+    // When proxying through nginx, cookies should be cleared without domain restriction
+    if (cookieDomain && cookieDomain.trim() !== '' && !isProduction) {
+      cookieOptions.domain = cookieDomain;
+    }
 
     res.cookie('access_token', '', cookieOptions);
     res.cookie('refresh_token', '', cookieOptions);
