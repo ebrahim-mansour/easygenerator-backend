@@ -31,7 +31,7 @@ npm install
 Copy `.env.example` to `.env` and configure:
 
 ```bash
-PORT=3000
+PORT=8080
 MONGO_URI=mongodb://mongo:27017/authdb
 JWT_SECRET=your_jwt_secret_change_in_production
 ACCESS_TOKEN_TTL=900
@@ -66,7 +66,7 @@ npm run test:e2e
 
 ## API Documentation
 
-Once running, visit `http://localhost:3000/api` for Swagger documentation.
+Once running, visit `http://localhost:8080/api` for Swagger documentation.
 
 ## Endpoints
 
@@ -80,7 +80,7 @@ Once running, visit `http://localhost:3000/api` for Swagger documentation.
 
 ```bash
 docker build -t auth-backend .
-docker run -p 3000:3000 auth-backend
+docker run -p 8080:8080 auth-backend
 ```
 
 ## Security

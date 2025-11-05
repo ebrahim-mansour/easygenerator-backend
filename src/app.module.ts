@@ -13,7 +13,7 @@ import { UsersModule } from './users/users.module';
 import { WinstonLoggerService } from './common/logger/winston-logger.service';
 
 const envValidationSchema = Joi.object({
-  PORT: Joi.number().default(3000),
+  PORT: Joi.number().default(8080),
   MONGO_URI: Joi.string().required(),
   JWT_SECRET: Joi.string().required(),
   ACCESS_TOKEN_TTL: Joi.string().required(),
